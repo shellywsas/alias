@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אליאס - גרסת פרו אדומה (כולל צלילים)</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjZTYzOTQ2Ii8+PC9zdmc+">
+    <style>
+        :root {
+            --primary: #e63946;
+            --primary-dark: #ba1826;
+            --success: #2a9d8f;
+            --danger: #2b2d42;
+            --warning: #e9c46a;
+            --dark: #1d3557;
+            --light: #f8f9fa;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            background: linear-gradient(135deg, #e63946, #660708); 
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3); 
+            max-width: 550px; 
+            width: 100%;
+            margin: 0 auto; 
+            min-height: 450px;
+            position: relative;
+        }
+
+        .mute-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: none;
+            border: none;
+            font-size: 1.8em;
+            cursor: pointer;
+            box-shadow: none;
+            padding: 5px;
+            color: var(--dark);
+            transition: transform 0.2s;
+        }
+        .mute-btn:hover { transform: scale(1.1); box-shadow: none; }
+        .mute-btn:active { transform: scale(0.9); }
+        
+        h1 { color: var(--primary); font-size: 2.5em; margin-top: 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        h2 { color: var(--dark); margin-top: 0; }
+        
+        .hidden { display: none !important; }
+        .flex { display: flex; gap: 15px; justify-content: center; margin-top: 15px;}
+        
+        button {
+            font-size: 1.2em; padding: 15px 20px; border: none; border-radius: 12px;
+            cursor: pointer; color: white; font-weight: bold; transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover { opacity: 0.9; transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+        button:active { transform: translateY(0); }
+        
+        .btn-primary { background-color: var(--primary); }
+        .btn-success { background-color: var(--success); flex: 1; display: flex; flex-direction: column; align-items: center;}
+        .btn-danger { background-color: var(--danger); flex: 1; display: flex; flex-direction: column; align-items: center;}
+        .btn-warning { background-color: var(--warning); color: var(--dark); }
+        .btn-outline { background-color: transparent; border: 2px solid var(--primary); color: var(--primary); box-shadow: none; padding: 10px 15px; font-size: 1em; margin-top: 20px;}
+        .btn-outline:hover { background-color: var(--light); }
+        .btn-block { width: 100%; margin-top: 15px; }
+        .btn-secondary { background-color: #6c757d; font-size: 1em; padding: 10px; margin-top: 10px; }
+
+        .key-hint { font-size: 0.6em; font-weight: normal; opacity: 0.8; margin-top: 5px; }
+
+        .form-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .form-group { text-align: right; flex: 1; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--dark); font-size: 0.9em; }
+        .form-group input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1em; transition: 0.3s; }
+        .form-group input:focus { border-color: var(--primary); outline: none; }
+        .optional-label { color: #888; font-size: 0.8em; font-weight: normal; }
+        
+        .track { background: var(--light); border-radius: 12px; margin-bottom: 15px; position: relative; height: 45px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #eee;}
+        .track-fill { height: 100%; width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; padding-right: 15px; color: white; font-weight: bold; white-space: nowrap; box-sizing: border-box; box-shadow: 2px 0 5px rgba(0,0,0,0.1);}
+        .track-bg { position: absolute; left: 15px; top: 12px; color: rgba(0,0,0,0.4); font-weight: bold; z-index: 1;}
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .word-display { 
+            font-size: 3.5em; 
+            font-weight: 900; 
+            color: var(--primary); 
+            margin: 30px 0; 
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: popIn 0.3s ease-out;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .stats-bar { display: flex; justify-content: space-between; font-size: 1.3em; background: var(--light); padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eee; }
+        .paused-text { color: var(--danger); font-size: 2em; font-weight: bold; margin: 30px 0; }
+        .turn-announcer { font-size: 1.5em; color: var(--dark); margin-bottom: 20px; font-weight: bold; padding: 15px; background: rgba(230, 57, 70, 0.1); border-radius: 12px; border: 2px dashed var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+        <button class="mute-btn" id="muteToggleBtn" onclick="toggleMute()" title="השתק/הפעל צלילים">🔊</button>
+
+        <div id="setupScreen">
+            <h1>אליאס</h1>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>קבוצה 1:</label>
+                    <input type="text" id="team1Input" value="פיצפץ">
+                </div>
+                <div class="form-group">
+                    <label>קבוצה 2:</label>
+                    <input type="text" id="team2Input" value="דפנה">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>קבוצה 3: <span class="optional-label">(אופציונלי)</span></label>
+                    <input type="text" id="team3Input" placeholder="השאר ריק אם לא רוצים">
+                </div>
+                <div class="form-group">
+                    <label>קבוצה 4: <span class="optional-label">(אופציונלי)</span></label>
+                    <input type="text" id="team4Input" placeholder="השאר ריק אם לא רוצים">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>זמן לתור (שניות):</label>
+                    <input type="number" id="turnTimeInput" value="60">
+                </div>
+                <div class="form-group">
+                    <label>ניקוד לניצחון:</label>
+                    <input type="number" id="winScoreInput" value="30">
+                </div>
+            </div>
+            <button class="btn-primary btn-block" onclick="initGame()">שמור והמשך ללוח</button>
+        </div>
+
+        <div id="boardScreen" class="hidden">
+            <h1>לוח תוצאות</h1>
+            <p style="color: #666; font-size: 1.1em; margin-bottom: 20px;">הראשונים שמגיעים ל-<strong id="goalDisplay"></strong> נקודות מנצחים!</p>
+            
+            <div id="tracksContainer"></div>
+
+            <div class="turn-announcer">
+                תור עכשיו: <span id="nextTeamDisplay" style="color: var(--primary);"></span>
+            </div>
+            
+            <button class="btn-primary btn-block" style="font-size: 1.4em; padding: 15px;" onclick="startTurn()">התחל תור</button>
+            <button class="btn-secondary btn-block" onclick="editSettings()">⚙️ ערוך קבוצות והגדרות</button>
+        </div>
+
+        <div id="playScreen" class="hidden">
+            <h2 id="playingTeamName" style="color: #666; font-size: 1.2em;"></h2>
+            
+            <div class="stats-bar">
+                <div style="color: var(--success); font-weight: bold;">ניקוד: <span id="scoreDisplay">0</span></div>
+                <div style="color: var(--primary); font-weight: bold;">זמן: <span id="timeDisplay">60</span></div>
+            </div>
+
+            <div class="word-display" id="wordDisplay">מוכנים?</div>
+            <div id="pausedMessage" class="paused-text hidden">המשחק מושהה</div>
+
+            <div class="flex" id="actionButtons">
+                <button class="btn-success" onclick="correctWord()">
+                    נכון (+1)
+                    <span class="key-hint">לחץ רווח ␣</span>
+                </button>
+                <button class="btn-danger" onclick="skipWord()">
+                    דלג (-1)
+                    <span class="key-hint">לחץ Enter ↵</span>
+                </button>
+            </div>
+            
+            <button class="btn-warning btn-block" id="btnPause" onclick="togglePause()">השהה משחק</button>
+            <button class="btn-outline btn-block" onclick="endTurnEarly()">סיים תור מוקדם וחזור ללוח</button>
+        </div>
+
+        <div id="winnerScreen" class="hidden">
+            <h1>🏆 יש לנו מנצחים! 🏆</h1>
+            <h2 class="word-display" id="winnerText" style="font-size: 3em;"></h2>
+            <p style="color:var(--dark); font-weight:bold;">מנגן מוזיקת ניצחון... 🎵</p>
+            <button class="btn-primary btn-block" onclick="location.reload()">משחק חדש</button>
+        </div>
+
+    </div>
+
+    <script>
+        // ================= AUDIO SYSTEM =================
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let isMuted = false;
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            document.getElementById('muteToggleBtn').innerText = isMuted ? "🔇" : "🔊";
+        }
+
+        function unlockAudio() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSuccessSound() {
+            if (isMuted) return;
+            unlockAudio();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
+            osc.frequency.exponentialRampToValueAtTime(1108.73, audioCtx.currentTime + 0.1); 
+            
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function playVictoryMusic() {
+            if (isMuted) return;
+            unlockAudio();
+            const notes = [523.25, 659.25, 783.99, 1046.50]; 
+            const durationSeconds = 10;
+            const notesToPlay = durationSeconds * 4; 
+            const startTime = audioCtx.currentTime;
+
+            for (let i = 0; i < notesToPlay; i++) {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.type = 'triangle';
+                const octaveMult = (Math.floor(i / 8) % 2 === 0) ? 1 : 0.5;
+                osc.frequency.value = notes[i % 4] * octaveMult;
+                
+                const noteTime = startTime + (i * 0.25);
+                gainNode.gain.setValueAtTime(0.05, noteTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.2);
+                
+                osc.start(noteTime);
+                osc.stop(noteTime + 0.2);
+            }
+        }
+
+        // ================= KEYBOARD SHORTCUTS (UPDATED) =================
+        document.addEventListener('keydown', function(event) {
+            const playScreenActive = !document.getElementById('playScreen').classList.contains('hidden');
+            if (playScreenActive && !isPaused) {
+                if (event.code === 'Space') { // רווח לנכון
+                    event.preventDefault(); // מונע מהעמוד לגלול למטה
+                    correctWord();
+                } else if (event.key === 'Enter') { // אנטר לדילוג
+                    event.preventDefault();
+                    skipWord();
+                }
+            }
+        });
+
+
+        // ================= GAME DATA =================
+        const allWords = [
+            "חתול", "שולחן", "מחשב", "אהבה", "ים", "טלפון", "שמש", "ירח", "מכונית", "כדור",
+            "גיטרה", "משקפיים", "חופשה", "פיצה", "מטוס", "מצלמה", "שוקולד", "חולצה", "ספר", "חלון",
+            "אוניברסיטה", "פילוסופיה", "תרמיל", "אופניים", "פסנתר", "גשם", "שלג", "מדבר", "יער", "נהר",
+            "אוטובוס", "רכבת", "בריכה", "מלון", "אוהל", "תופים", "כינור", "מיקרופון", "במה", "שחקן", 
+            "סרט", "קולנוע", "פופקורן", "טלוויזיה", "עיתון", "חדשות", "פוליטיקה", "ממשלה", "דמוקרטיה", "מלך", 
+            "מלכה", "נסיך", "ארמון", "טירה", "אביר", "דרקון", "קסם", "מכשף", "שרביט", "מטאטא", 
+            "אבק", "ניקיון", "סבון", "מים", "אש", "אדמה", "אוויר", "רוח", "ברד", "סערה", 
+            "ברק", "רעם", "ענן", "שמיים", "כוכב", "חלל", "אסטרונאוט", "חללית", "כדור הארץ", "מדינה", 
+            "עיר", "רחוב", "בית", "דירה", "חדר", "מיטה", "שמיכה", "כרית", "חלום", "סיוט", 
+            "לילה", "בוקר", "צהריים", "ערב", "שעון", "זמן", "עבר", "הווה", "עתיד", "היסטוריה",
+            "אריה", "נמר", "פיל", "קוף", "זברה", "ג'ירפה", "דוב", "ציפור", "נחש", "צפרדע",
+            "תפוח", "בננה", "ענבים", "אבטיח", "תפוז", "תות", "אפרסק", "מלון", "גזר", "עגבניה",
+            "מלפפון", "בצל", "שום", "תפוח אדמה", "לחם", "גבינה", "בשר", "עוף", "דג", "ביצה",
+            "חלב", "מיץ", "יין", "בירה", "קפה", "תה", "כיסא", "ארון", "מנורה", "שטיח",
+            "דלת", "מפתח", "מנעול", "מספריים", "סכין", "מזלג", "כף", "צלחת", "כוס", "סיר",
+            "מחבת", "הר", "עמק", "שדה", "אגם", "קרחון", "הר געש", "אי", "מערה", "יבשת",
+            "שמחה", "עצב", "כעס", "פחד", "תקווה", "ייאוש", "אומץ", "ביישנות", "בית ספר", "גן",
+            "פארק", "קניון", "חנות", "מסעדה", "בית חולים", "תחנת משטרה", "בנק", "דואר", "שדה תעופה", "תחנת רכבת",
+            "רופא", "מורה", "מהנדס", "זמר", "סופר", "טייס", "נהג", "שוטר", "חייל", "טבח",
+            "מלצר", "אינטרנט", "תוכנה", "אפליקציה", "מקלדת", "עכבר", "מסך", "סוללה", "מטען", "כבל",
+            "אוזניות", "רמקול", "וידאו", "תמונה", "משקפת", "טלסקופ", "מיקרוסקופ", "מראה", "מברשת", "משחה",
+            "ארנק", "מטבע", "שטר", "כספת", "זהב", "יהלום", "טבעת", "שרשרת", "שעון יד", "צמיד",
+            "כובע", "צעיף", "כפפות", "מעיל", "סוודר", "מכנסיים", "שמלה", "חצאית", "גרביים", "נעליים",
+            "סנדלים", "מגפיים", "חגורה", "משקפי שמש", "מטריה", "תיק", "מזוודה", "דרכון", "כרטיס טיסה", "מצפן",
+            "מפה", "גלובוס", "צפון", "דרום", "מזרח", "מערב", "ימין", "שמאל", "קדימה", "אחורה",
+            "למעלה", "למטה", "עמוק", "רדוד", "רחב", "צר", "ארוך", "קצר", "גבוה", "נמוך",
+            "שמן", "רזה", "חזק", "חלש", "מהיר", "איטי", "חכם", "טיפש", "יפה", "מכוער",
+            "טוב", "רע", "מתוק", "מלוח", "מר", "חמוץ", "חריף", "חם", "קר", "קפוא",
+            "רותח", "יבש", "רטוב", "חלק", "מחוספס", "רך", "קשה", "כבד", "קל", "מלא",
+            "ריק", "פתוח", "סגור", "שבור", "שלם", "חדש", "ישן", "עתיק", "מודרני", "מפורסם",
+            "סודי", "גלוי", "אמיתי", "מזויף", "ברור", "מעורפל", "פשוט", "מסובך", "קל", "קשה",
+            "ראש", "שיער", "פנים", "עיניים", "אף", "פה", "שפתיים", "שיניים", "לשון", "אוזניים",
+            "צוואר", "כתפיים", "ידיים", "אצבעות", "ציפורניים", "חזה", "בטן", "גב", "רגליים", "ברכיים",
+            "עצם", "דם", "לב", "מוח", "ריאות", "קיבה", "שריר", "עור", "דמעה", "זיעה",
+            "נשימה", "קול", "דיבור", "צעקה", "לחישה", "שירה", "צחוק", "בכי", "חיוך", "נשיקה",
+            "חיבוק", "לחיצת יד", "קפיצה", "ריצה", "הליכה", "זחילה", "שחייה", "טיפוס", "נפילה", "קימה",
+            "ישיבה", "שכיבה", "שינה", "חלום", "יקיצה", "מחשבה", "זיכרון", "שכחה", "למידה", "הוראה",
+            "כתיבה", "קריאה", "ציור", "פיסול", "צילום", "משחק", "ניצחון", "הפסד", "תחרות", "פרס",
+            "עונש", "חוק", "משפט", "שופט", "עורך דין", "גנב", "פושע", "בית כלא", "חופש", "עבדות",
+            "שלום", "מלחמה", "צבא", "נשק", "רובה", "אקדח", "פצצה", "טנק", "צוללת", "מסוק",
+            "רמזור", "כביש", "מדרכה", "גשר", "מנהרה", "צומת", "כיכר", "תמרור", "דלק", "מוסך"
+        ];
+        
+        let wordsBank = [];
+        let teams = []; 
+        let currentTeamIndex = 0;
+        let targetScore = 30;
+        let turnDuration = 60;
+        
+        let turnScore = 0;
+        let timeLeft = 0;
+        let timerInterval = null;
+        let isPaused = false;
+
+        const teamColors = [
+            "linear-gradient(90deg, #e63946, #ba1826)",
+            "linear-gradient(90deg, #2b2d42, #1d3557)",
+            "linear-gradient(90deg, #2a9d8f, #21867a)",
+            "linear-gradient(90deg, #6a4c93, #4a3466)"
+        ];
+
+        const screens = {
+            setup: document.getElementById('setupScreen'),
+            board: document.getElementById('boardScreen'),
+            play: document.getElementById('playScreen'),
+            winner: document.getElementById('winnerScreen')
+        };
+
+        function showScreen(screenName) {
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            screens[screenName].classList.remove('hidden');
+        }
+
+        function initGame() {
+            unlockAudio(); 
+            
+            const t1 = document.getElementById('team1Input').value.trim();
+            const t2 = document.getElementById('team2Input').value.trim();
+            const t3 = document.getElementById('team3Input').value.trim();
+            const t4 = document.getElementById('team4Input').value.trim();
+
+            if (!t1 || !t2) {
+                alert("חייבים למלא לפחות את קבוצה 1 וקבוצה 2!");
+                return;
+            }
+
+            const inputNames = [t1, t2];
+            if (t3) inputNames.push(t3);
+            if (t4) inputNames.push(t4);
+
+            let newTeams = [];
+            
+            for (let i = 0; i < inputNames.length; i++) {
+                let existingScore = (teams[i]) ? teams[i].score : 0;
+                newTeams.push({
+                    name: inputNames[i],
+                    score: existingScore,
+                    color: teamColors[i]
+                });
+            }
+            
+            teams = newTeams;
+            
+            if (currentTeamIndex >= teams.length) {
+                currentTeamIndex = 0;
+            }
+
+            turnDuration = parseInt(document.getElementById('turnTimeInput').value) || 60;
+            targetScore = parseInt(document.getElementById('winScoreInput').value) || 30;
+            
+            document.getElementById('goalDisplay').innerText = targetScore;
+            
+            if (wordsBank.length === 0) {
+                wordsBank = [...allWords].sort(() => 0.5 - Math.random());
+            }
+            
+            updateBoard();
+            showScreen('board');
+        }
+
+        function editSettings() {
+            document.getElementById('team1Input').value = teams[0] ? teams[0].name : '';
+            document.getElementById('team2Input').value = teams[1] ? teams[1].name : '';
+            document.getElementById('team3Input').value = teams[2] ? teams[2].name : '';
+            document.getElementById('team4Input').value = teams[3] ? teams[3].name : '';
+            
+            document.getElementById('turnTimeInput').value = turnDuration;
+            document.getElementById('winScoreInput').value = targetScore;
+
+            showScreen('setup');
+        }
+
+        function updateBoard() {
+            const container = document.getElementById('tracksContainer');
+            container.innerHTML = ''; 
+            
+            teams.forEach((team) => {
+                const progressPercentage = Math.min((team.score / targetScore) * 100, 100);
+                
+                container.innerHTML += `
+                    <div class="track">
+                        <div class="track-bg">${team.score} נק'</div>
+                        <div class="track-fill" style="width: ${progressPercentage}%; background: ${team.color};">
+                            ${team.name}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('nextTeamDisplay').innerText = teams[currentTeamIndex].name;
+        }
+
+        function startTurn() {
+            unlockAudio();
+            turnScore = 0;
+            timeLeft = turnDuration;
+            isPaused = false;
+            
+            document.getElementById('playingTeamName').innerText = "משחקים עכשיו: " + teams[currentTeamIndex].name;
+            document.getElementById('scoreDisplay').innerText = turnScore;
+            document.getElementById('timeDisplay').innerText = timeLeft;
+            
+            const btnPause = document.getElementById('btnPause');
+            btnPause.innerText = "השהה משחק";
+            btnPause.classList.remove('btn-success');
+            btnPause.classList.add('btn-warning');
+            
+            document.getElementById('pausedMessage').classList.add('hidden');
+            document.getElementById('actionButtons').classList.remove('hidden');
+            document.getElementById('wordDisplay').classList.remove('hidden');
+
+            showScreen('play');
+            nextWord();
+            
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function triggerWordAnimation() {
+            const wordEl = document.getElementById('wordDisplay');
+            wordEl.style.animation = 'none';
+            wordEl.offsetHeight; 
+            wordEl.style.animation = 'popIn 0.3s ease-out';
+        }
+
+        function nextWord() {
+            if (wordsBank.length === 0) {
+                wordsBank = [...allWords].sort(() => 0.5 - Math.random());
+            }
+            document.getElementById('wordDisplay').innerText = wordsBank.pop();
+            triggerWordAnimation();
+        }
+
+        function correctWord() {
+            if(isPaused) return;
+            turnScore++;
+            document.getElementById('scoreDisplay').innerText = turnScore;
+            playSuccessSound(); 
+            nextWord();
+        }
+
+        function skipWord() {
+            if(isPaused) return;
+            turnScore--; 
+            document.getElementById('scoreDisplay').innerText = turnScore;
+            nextWord();
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('btnPause');
+            const pausedMsg = document.getElementById('pausedMessage');
+            const actionBtns = document.getElementById('actionButtons');
+            const wordDisp = document.getElementById('wordDisplay');
+
+            if (isPaused) {
+                clearInterval(timerInterval);
+                btn.innerText = "המשך משחק";
+                btn.classList.remove('btn-warning');
+                btn.classList.add('btn-success');
+                pausedMsg.classList.remove('hidden');
+                actionBtns.classList.add('hidden');
+                wordDisp.classList.add('hidden'); 
+            } else {
+                timerInterval = setInterval(updateTimer, 1000);
+                btn.innerText = "השהה משחק";
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-warning');
+                pausedMsg.classList.add('hidden');
+                actionBtns.classList.remove('hidden');
+                wordDisp.classList.remove('hidden');
+            }
+        }
+
+        function endTurnEarly() {
+            if(confirm("האם אתה בטוח שאתה רוצה לסיים את התור עכשיו? הנקודות שנצברו עד כה יישמרו.")) {
+                endTurn(false); 
+            }
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            document.getElementById('timeDisplay').innerText = timeLeft;
+            
+            if (timeLeft <= 0) {
+                endTurn(true);
+            }
+        }
+
+        function endTurn(timeIsUp = true) {
+            clearInterval(timerInterval);
+            
+            teams[currentTeamIndex].score += turnScore;
+            if(teams[currentTeamIndex].score < 0) teams[currentTeamIndex].score = 0;
+
+            if (teams[currentTeamIndex].score >= targetScore) {
+                document.getElementById('winnerText').innerText = teams[currentTeamIndex].name;
+                playVictoryMusic(); 
+                showScreen('winner');
+                return;
+            }
+
+            currentTeamIndex = (currentTeamIndex + 1) % teams.length;
+            
+            if (timeIsUp) {
+                alert(`הזמן נגמר! צברתם ${turnScore} נקודות בתור הזה.`);
+            }
+            
+            updateBoard();
+            showScreen('board');
+        }
+    </script>
+</body>
+</html>
