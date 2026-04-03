@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אליאס - גרסה אדומה</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjZTYzOTQ2Ii8+PC9zdmc+">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #e63946;
+            --primary-dark: #ba1826;
+            --success: #2a9d8f;
+            --danger: #2b2d42;
+            --warning: #e9c46a;
+            --dark: #1d3557;
+            --light: #f8f9fa;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            background: linear-gradient(135deg, #e63946, #660708); 
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3); 
+            max-width: 550px; 
+            width: 100%;
+            margin: 0 auto; 
+            min-height: 450px;
+            position: relative;
+        }
+
+        .mute-btn, .home-btn {
+            position: absolute;
+            top: 15px;
+            background: none;
+            border: none;
+            font-size: 1.8em;
+            cursor: pointer;
+            box-shadow: none;
+            padding: 5px;
+            color: var(--dark);
+            transition: transform 0.2s;
+            z-index: 100;
+        }
+        .mute-btn { left: 15px; }
+        .home-btn { right: 15px; }
+        
+        .mute-btn:hover, .home-btn:hover { transform: scale(1.1); box-shadow: none; }
+        .mute-btn:active, .home-btn:active { transform: scale(0.9); }
+        
+        h1 { color: var(--primary); font-size: 2.5em; margin-top: 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        h2 { color: var(--dark); margin-top: 0; }
+        
+        .hidden { display: none !important; }
+        .flex { display: flex; gap: 15px; justify-content: center; margin-top: 15px;}
+        
+        button {
+            font-size: 1.2em; padding: 15px 20px; border: none; border-radius: 12px;
+            cursor: pointer; color: white; font-weight: bold; transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover { opacity: 0.9; transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+        button:active { transform: translateY(0); }
+        
+        .btn-primary { background-color: var(--primary); }
+        .btn-success { background-color: var(--success); flex: 1; display: flex; flex-direction: column; align-items: center;}
+        .btn-danger { background-color: var(--danger); flex: 1; display: flex; flex-direction: column; align-items: center;}
+        .btn-warning { background-color: var(--warning); color: var(--dark); }
+        .btn-neutral { background-color: #8d99ae; flex: 1; display: flex; flex-direction: column; align-items: center;}
+        .btn-outline { background-color: transparent; border: 2px solid var(--primary); color: var(--primary); box-shadow: none; padding: 10px 15px; font-size: 1em; margin-top: 20px;}
+        .btn-outline:hover { background-color: var(--light); }
+        .btn-block { width: 100%; margin-top: 15px; }
+        .btn-secondary { background-color: #6c757d; font-size: 1em; padding: 10px; margin-top: 10px; }
+
+        .key-hint { font-size: 0.6em; font-weight: normal; opacity: 0.8; margin-top: 5px; }
+
+        .form-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .form-group { text-align: right; flex: 1; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--dark); font-size: 0.9em; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1em; transition: 0.3s; font-family: inherit;}
+        .form-group input:focus, .form-group select:focus { border-color: var(--primary); outline: none; }
+        .optional-label { color: #888; font-size: 0.8em; font-weight: normal; }
+        
+        .track { background: var(--light); border-radius: 12px; margin-bottom: 15px; position: relative; min-height: 45px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #eee; display: block;}
+        .track-fill { height: 100%; width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); position: absolute; top:0; right:0; z-index: 1;}
+        .track-name { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--dark); font-weight: bold; z-index: 5; text-align: right; line-height: 1.1; text-shadow: 1px 1px 3px rgba(255,255,255,0.8); pointer-events: none;}
+        .track-bg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--dark); font-weight: bold; z-index: 5; text-shadow: 1px 1px 3px rgba(255,255,255,0.8); pointer-events: none;}
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .word-display { 
+            font-size: 3.5em; 
+            font-weight: 900; 
+            color: var(--primary); 
+            margin: 30px 0; 
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: popIn 0.3s ease-out;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .stats-bar { display: flex; justify-content: space-between; font-size: 1.3em; background: var(--light); padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eee; }
+        .paused-text { color: var(--danger); font-size: 2em; font-weight: bold; margin: 30px 0; }
+        .turn-announcer { font-size: 1.5em; color: var(--dark); margin-bottom: 20px; font-weight: bold; padding: 15px; background: rgba(230, 57, 70, 0.1); border-radius: 12px; border: 2px dashed var(--primary); }
+        
+        .join-box { background: #fdf2f2; padding: 15px; border-radius: 12px; border: 2px dashed var(--primary); margin-bottom: 20px;}
+        
+        .lobby-list { list-style: none; padding: 0; text-align: right; }
+        .lobby-list li { background: var(--light); margin-bottom: 10px; padding: 15px; border-radius: 8px; border-right: 5px solid var(--primary); font-weight: bold;}
+
+        .toast {
+            background: rgba(29, 53, 87, 0.95);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            animation: popIn 0.3s ease-out;
+            transition: opacity 0.5s;
+        }
+
+        #specialTurnScoresContainer {
+            background: rgba(230, 57, 70, 0.1);
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px dashed var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--dark);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toastContainer" style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; display:flex; flex-direction:column; gap:10px; pointer-events: none;"></div>
+
+    <div class="container" id="app">
+        <button class="mute-btn" id="muteToggleBtn" onclick="toggleMute()" title="השתק/הפעל צלילים">🔊</button>
+        <button class="home-btn" onclick="confirmExit()" title="חזור למסך הראשי">🏠</button>
+
+        <div id="modeScreen">
+            <h1 style="font-size: 3em; margin-bottom: 30px;">אליאס</h1>
+            <h2>איך תרצו לשחק?</h2>
+            <button class="btn-primary" style="padding: 25px; font-size: 1.4em; margin-bottom: 20px;" onclick="setMode('local')">📱 משחק במכשיר אחד (ללא רשת)</button>
+            <button class="btn-secondary" style="padding: 25px; font-size: 1.4em;" onclick="setMode('network')">🌐 משחק רשת (כל אחד מהטלפון שלו)</button>
+        </div>
+
+        <div id="setupScreen" class="hidden">
+            <h1 id="setupTitle">אליאס ברשת</h1>
+            
+            <div id="networkJoinBox" class="join-box hidden">
+                <h3 style="margin-top:0; color:var(--primary);">הצטרפות לחדר קיים:</h3>
+                <div class="form-row">
+                    <div class="form-group"><input type="text" id="joinPlayerName" placeholder="איך קוראים לך? (למשל: דני)"></div>
+                    <div class="form-group"><input type="number" id="joinCodeInput" placeholder="קוד חדר"></div>
+                </div>
+                <button class="btn-secondary" id="joinBtn" onclick="joinRoom()">חפש חדר</button>
+            </div>
+
+            <hr id="networkDivider" class="hidden" style="border: 1px solid #eee; margin: 20px 0;">
+            <h3 id="hostCreateTitle" style="color:var(--dark);">יצירת חדר חדש (מנהל):</h3>
+
+            <div class="form-row hidden" id="hostNameRow" style="margin-bottom: 5px;">
+                <div class="form-group">
+                    <input type="text" id="hostNameInput" placeholder="איך קוראים לך? (שם המנהל)">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>קבוצה 1:</label>
+                    <input type="text" id="team1Input" value="פיצפץ">
+                </div>
+                <div class="form-group">
+                    <label>קבוצה 2:</label>
+                    <input type="text" id="team2Input" value="דפנה">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>קבוצה 3: <span class="optional-label">(אופציונלי)</span></label>
+                    <input type="text" id="team3Input" placeholder="השאר ריק אם לא רוצים">
+                </div>
+                <div class="form-group">
+                    <label>קבוצה 4: <span class="optional-label">(אופציונלי)</span></label>
+                    <input type="text" id="team4Input" placeholder="השאר ריק אם לא רוצים">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>זמן לתור (שניות):</label>
+                    <input type="number" id="turnTimeInput" value="60">
+                </div>
+                <div class="form-group">
+                    <label>ניקוד לניצחון:</label>
+                    <input type="number" id="winScoreInput" value="30">
+                </div>
+            </div>
+            <button class="btn-primary btn-block" id="btnCreateGame" onclick="initGame()">צור חדר והמשך</button>
+        </div>
+
+        <div id="chooseTeamScreen" class="hidden">
+            <h1 style="color: var(--primary);">בחירת קבוצה</h1>
+            <h2 id="welcomeMsg" style="color: var(--dark);"></h2>
+            <p>לאיזו קבוצה תרצה להצטרף?</p>
+            <div class="form-group">
+                <select id="teamSelectDropdown" style="font-size: 1.2em; padding: 15px; margin-bottom: 20px;"></select>
+            </div>
+            <button class="btn-success btn-block" id="confirmJoinBtn" onclick="confirmTeamJoin()">הצטרף לקבוצה!</button>
+        </div>
+
+        <div id="lobbyScreen" class="hidden">
+            <h1>לובי המתנה</h1>
+            <h2 style="color: var(--primary);">קוד החדר: <span id="lobbyRoomCode" style="font-size: 1.5em; letter-spacing: 3px;"></span></h2>
+            <p>ממתינים שכולם יצטרפו...</p>
+            <ul id="lobbyTeamsList" class="lobby-list"></ul>
+            <button id="btnStartFromLobby" class="btn-primary btn-block hidden" style="font-size: 1.4em; padding: 15px;" onclick="startGameFromLobby()">התחל משחק!</button>
+            <p id="waitHostLobbyMsg" class="hidden" style="color:#666; font-weight:bold; margin-top:20px;">ממתינים למנהל שיתחיל את המשחק...</p>
+        </div>
+
+        <div id="difficultyScreen" class="hidden">
+            <h1 style="color: var(--primary); font-size: 2.8em; margin-bottom: 10px;">סיבוב חדש!</h1>
+            <h2 style="color: var(--dark); margin-bottom: 30px;">בחר רמת קושי למילים בסיבוב הזה:</h2>
+            
+            <div id="difficultyControls">
+                <button class="btn-success btn-block" style="padding: 20px; font-size: 1.4em;" onclick="setDifficulty('easy')">🟢 קל</button>
+                <button class="btn-warning btn-block" style="padding: 20px; font-size: 1.4em;" onclick="setDifficulty('medium')">🟡 בינוני</button>
+                <button class="btn-danger btn-block" style="padding: 20px; font-size: 1.4em;" onclick="setDifficulty('hard')">🔴 קשה</button>
+            </div>
+            
+            <div id="difficultyWaitMsg" class="hidden">
+                <p style="font-size: 1.3em; font-weight: bold; color: var(--dark); margin-top: 30px;">ממתינים למנהל שיבחר רמת קושי...</p>
+            </div>
+        </div>
+
+        <div id="raffleScreen" class="hidden">
+            <h1 style="color: var(--warning); font-size: 2.8em; margin-bottom: 10px;">🎲 תוצאות ההגרלה 🎲</h1>
+            <div id="raffleResultBox" style="background: var(--light); padding: 20px; border-radius: 15px; margin: 30px 0; border: 2px dashed var(--primary);">
+                <h2 id="raffleTitle" style="color: var(--primary); font-size: 1.8em;"></h2>
+                <p id="raffleDesc" style="font-size: 1.3em; font-weight: bold; color: var(--dark);"></p>
+            </div>
+            <button id="btnContinueFromRaffle" class="btn-primary btn-block hidden" style="font-size: 1.4em; padding: 15px;" onclick="continueToBoard()">המשך ללוח התוצאות</button>
+            <p id="waitHostRaffleMsg" class="hidden" style="color:#666; font-weight:bold; margin-top:20px;">ממתינים למנהל שיאשר...</p>
+        </div>
+
+        <div id="boardScreen" class="hidden">
+            <h1>לוח תוצאות</h1>
+            <h2 id="boardRoomCodeContainer" class="hidden" style="color: var(--primary);">קוד החדר: <span id="roomCodeDisplay" style="font-size: 1.5em; letter-spacing: 3px;"></span></h2>
+            <p style="color: #666; font-size: 1.1em; margin-bottom: 20px;">הראשונים שמגיעים ל-<strong id="goalDisplay"></strong> נקודות מנצחים!</p>
+            
+            <div id="tracksContainer"></div>
+
+            <div class="turn-announcer">
+                תור עכשיו: <span id="nextTeamDisplay" style="color: var(--primary);"></span>
+            </div>
+            
+            <button class="btn-primary btn-block" id="btnStartTurn" style="font-size: 1.4em; padding: 15px;" onclick="startTurn()">התחל תור</button>
+            <p id="waitHostMsg" class="hidden" style="color:#666; font-weight:bold;">ממתינים שחקן יתחיל את התור...</p>
+        </div>
+
+        <div id="playScreen" class="hidden">
+            <h2 id="playingTeamName" style="color: #666; font-size: 1.2em;"></h2>
+            <h3 id="specialTurnAlert" class="hidden" style="color: var(--primary); background: #fdf2f2; padding: 5px; border-radius: 5px;">🔥 תור מיוחד! 🔥</h3>
+            
+            <div class="stats-bar">
+                <div style="color: var(--success); font-weight: bold;">מילים: <span id="scoreDisplay">0</span></div>
+                <div id="timerContainer" style="color: var(--primary); font-weight: bold;">זמן: <span id="timeDisplay">60</span></div>
+                <div id="wordsCounterContainer" class="hidden" style="color: var(--primary); font-weight: bold;">מילים: <span id="wordsCountDisplay">0</span>/5</div>
+            </div>
+
+            <div id="specialTurnScoresContainer" class="hidden"></div>
+
+            <div class="word-display" id="wordDisplay">מוכנים?</div>
+            
+            <div id="notMyTurnMsg" class="hidden" style="margin: 30px 0;">
+                <h3 style="color: var(--primary); font-size: 1.5em; font-weight: bold; margin-bottom: 20px;">הם מסבירים עכשיו...</h3>
+                <div id="miniTracksContainer" style="text-align: right;"></div>
+            </div>
+            
+            <div id="pausedMessage" class="paused-text hidden">המשחק מושהה</div>
+
+            <div class="flex" id="actionButtons">
+                <button class="btn-success" onclick="correctWord()">
+                    נכון (+1)
+                    <span class="key-hint">לחץ רווח ␣</span>
+                </button>
+                <button class="btn-neutral" onclick="passWord()">
+                    תיאור לא חוקי (0)
+                    <span class="key-hint">ביטול ללא קנס</span>
+                </button>
+                <button class="btn-danger" onclick="skipWord()">
+                    דלג (-1)
+                    <span class="key-hint">לחץ Enter ↵</span>
+                </button>
+            </div>
+
+            <div id="stealTurnButtons" class="hidden" style="margin-top: 15px;">
+                <p style="font-weight: bold; color: var(--primary); margin-bottom: 10px;">מי צעק נכון ראשון?</p>
+                <div id="stealTeamsGrid" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button class="btn-neutral" style="flex:1;" onclick="passWord()">ביטול / תיאור לא חוקי (0)</button>
+                    <button class="btn-danger" style="flex:1;" onclick="skipWord()">דלג (ללא קנס)</button>
+                </div>
+            </div>
+
+            <button id="undoBtn" class="btn-outline hidden" style="margin-top: 15px; width: auto; display: inline-block; padding: 8px 20px; font-size: 1.1em; background-color: white;" onclick="undoWord()">↩️ טעות! חזור למילה הקודמת (ותקן ניקוד)</button>
+            
+            <div id="hostControls">
+                <button class="btn-warning btn-block" id="btnPause" onclick="togglePause()">השהה משחק</button>
+                <button class="btn-outline btn-block" id="btnEndTurnEarly" onclick="endTurnEarly()">סיים תור מוקדם ודלג לאתגר המילה האחרונה</button>
+            </div>
+        </div>
+
+        <div id="lastWordScreen" class="hidden">
+            <h1 style="color: var(--warning); font-size: 2.2em; margin-bottom: 5px;">⏰ הזמן נגמר!</h1>
+            <h2 style="color: var(--dark); font-size: 1.3em;">אתגר המילה האחרונה (כולם מנחשים)</h2>
+            
+            <div class="word-display" id="lastWordDisplay" style="font-size: 3em; margin: 20px 0;"></div>
+
+            <div id="lastWordDescriberControls" class="hidden">
+                <p style="font-size: 1.2em; font-weight: bold; color: var(--primary);">איזו קבוצה צעקה ראשונה נכון?</p>
+                <div id="lastWordTeamButtons" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
+                <button class="btn-neutral btn-block" onclick="endLastWordLocalOrCloud(null)">אף אחד לא ניחש</button>
+            </div>
+
+            <div id="lastWordObserverMsg" class="hidden">
+                <p style="font-size: 1.3em; font-weight: bold; color: var(--dark); margin-top: 30px;">ממתינים שהמסביר יבחר מי ניחש נכון...</p>
+            </div>
+        </div>
+
+        <div id="turnSummaryScreen" class="hidden">
+            <h1 style="color: var(--primary); font-size: 2.8em;">התור הסתיים!</h1>
+            <h2 id="summaryTitleH2" style="font-size: 2.2em; margin: 30px 0; color: var(--dark);"></h2>
+            <p id="summaryMessageSpan" style="font-size: 1.4em; color: var(--dark); font-weight: bold; line-height: 1.4;"></p>
+            <p style="color: #888; margin-top: 30px; font-size: 1em;">מעביר ללוח בעוד כמה שניות...</p>
+        </div>
+
+        <div id="winnerScreen" class="hidden">
+            <h1>🏆 יש לנו מנצחים! 🏆</h1>
+            <h2 class="word-display" id="winnerText" style="font-size: 3em;"></h2>
+            <p style="color:var(--dark); font-weight:bold;">מנגן מוזיקת ניצחון... 🎵</p>
+            <button class="btn-primary btn-block" onclick="location.reload()">משחק חדש</button>
+        </div>
+
+    </div>
+
+    <script src="words.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
