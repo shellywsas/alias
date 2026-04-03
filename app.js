@@ -219,7 +219,7 @@ function setMode(mode) {
         document.getElementById('hostNameRow').classList.add('hidden');
         document.getElementById('btnCreateGame').innerText = "צור משחק והתחל";
     } else {
-        document.getElementById('setupTitle').innerText = "אליאס ברשת";
+        document.getElementById('setupTitle').innerText = "נחש את המילה ברשת";
         document.getElementById('networkJoinBox').classList.remove('hidden');
         document.getElementById('networkDivider').classList.remove('hidden');
         document.getElementById('hostCreateTitle').classList.remove('hidden');
